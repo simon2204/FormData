@@ -26,7 +26,7 @@ public struct FormDataUploader {
     }
     
     public func upload() throws -> Data {
-        let (data, response, error) = Self.session.upload(with: request, from: formData.data)
+        let (data, response, error) = Self.session.upload(with: request, from: formData.multiPartData)
         
         if let error = error {
             throw error
