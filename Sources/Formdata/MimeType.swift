@@ -19,6 +19,7 @@ public enum MimeType: String {
     case pdf = "application/pdf"
     case pkcs8 = "application/pkcs8"
     case zip = "application/zip"
+    case urlencoded = "application/x-www-form-urlencoded"
     case formData = "multipart/form-data"
     case byteRanges = "multipart/byteranges"
     case jpeg = "image/jpeg"

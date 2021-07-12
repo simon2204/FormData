@@ -11,55 +11,46 @@ import Foundation
 ///
 /// Ermöglicht Daten über HTML als `multipart/form-data` zu versenden.
 ///
-public class FormData {
+public struct FormData: PostRequest {
+    
     // Media Type der Ressourcen, die mit `FormData` erstellt werden.
     private static let contentType = MimeType.formData.rawValue
     
     // Art des Inhaltes, welcher dargestellt wird.
     private static let contentDisposition = "form-data"
     
-    private var dataHasChanged = false
-    
     // Enthält alle Dateien und Daten, die zu `FormData` hinzugefügt wurden.
-    private var dataParts = [Data]() {
-        didSet {
-            dataHasChanged = true
-        }
-    }
+    private var dataParts = [Data]()
     
-    private var cachedBoundary: Boundary!
-    
-    private var boundary: Boundary {
-        if dataHasChanged {
-            cachedBoundary = Boundary(data: dataParts)
-            dataHasChanged = false
-        }
-        return cachedBoundary
-    }
+    private var boundary: Boundary<FormData>!
     
     // Teilt bei Versenden der Daten dem Server oder Client mit,
     // um welchen Inhaltstyp es sich bei den zurückgegebenen Inhalten handelt.
-    var httpHeaderFields: [String: String] {
+    public var httpHeaderFields: [String: String] {
         let contentType = "\(Self.contentType); boundary=\(boundary.boundaryData.utf8String)"
         return ["Content-Type": contentType]
     }
     
     // Beinhaltet alle Daten, die zum Versenden als form-data benötigt werden.
-    var multiPartData: Data {
+    public var body: Data {
         boundary.boundaryData
         + dataParts.joined(seperator: boundary.boundaryData)
         + boundary.endBoundaryData
     }
     
-    public func append(_ text: String, name: String) {
+    public init() {
+        self.boundary = Boundary(object: self, keyPath: \.dataParts)
+    }
+    
+    public mutating func append(_ text: String, name: String) {
         dataParts.append(dataPart(for: text, name: name))
     }
     
-    public func append(_ data: Data, name: String) {
+    public mutating func append(_ data: Data, name: String) {
         dataParts.append(dataPart(for: data, name: name))
     }
     
-    public func append(_ file: File, name: String) {
+    public mutating func append(_ file: File, name: String) {
         dataParts.append(dataPart(for: file, name: name))
     }
     
@@ -82,38 +73,57 @@ public class FormData {
     }
 }
 
-extension FormData {
-    struct Boundary {
-        // Dient dazu die zum Server gesendeten Form-Daten mit diesem
-        // Framework in Verbindung zu bringen.
-        private static let identification: Data = "FormDataFormBoundary"
+
+fileprivate final class Boundary<T> {
+    
+    private let object: T
+    
+    private let keypath: KeyPath<T, [Data]>
+    
+    private var data: [Data]!
+    
+    private var cachedBoundaryValue: Data!
+    
+    private var boundaryValue: Data {
+        let currentData = object[keyPath: keypath]
         
-        // Abgrenzung der einzelnen Teile in einer Multipart Datenstruktur.
-        let boundaryData: Data
-        
-        // Markiert, dass keine weiteren Dateien und Daten nach dieser Grenze mehr folgen.
-        let endBoundaryData: Data
-        
-        init(data: [Data]) {
-            let boundaryValue = Self.createUniqueBoundaryValue(for: data)
-            self.boundaryData = "--" + boundaryValue
-            self.endBoundaryData = "--" + boundaryValue + "--"
+        if cachedBoundaryValue == nil || self.data != currentData {
+            self.data = currentData
+            self.cachedBoundaryValue = createUniqueBoundaryValue()
         }
         
-        private static func createUniqueBoundaryValue(for data: [Data]) -> Data {
-            var boundaryValue: Data
-            repeat {
-                boundaryValue = Self.createBoundaryValue()
-            } while data.containsAny(segment: boundaryValue)
-            return boundaryValue
-        }
-        
-        /// Erstellt eine neue Grenze mit Hilfe einer selbst festgelegten Identifikation und einer `UUID`.
-        /// - Returns: Grenze in Form von Daten.
-        private static func createBoundaryValue() -> Data {
-            Self.identification + UUID().uuidString
-        }
+        return self.cachedBoundaryValue
+    }
+    
+    // Abgrenzung der einzelnen Teile in einer Multipart Datenstruktur.
+    var boundaryData: Data {
+        "--" + boundaryValue
+    }
+    
+    // Markiert, dass keine weiteren Dateien und Daten nach dieser Grenze mehr folgen.
+    var endBoundaryData: Data {
+        "--" + boundaryValue + "--"
+    }
+    
+    init(object: T, keyPath: KeyPath<T, [Data]>) {
+        self.object = object
+        self.keypath = keyPath
+    }
+    
+    private func createUniqueBoundaryValue() -> Data {
+        var boundaryValue: Data
+        repeat {
+            boundaryValue = Self.createBoundaryValue()
+        } while data.containsAny(segment: boundaryValue)
+        return boundaryValue
+    }
+    
+    /// Erstellt eine neue Grenze mit Hilfe einer selbst festgelegten Identifikation und einer `UUID`.
+    /// - Returns: Grenze in Form von Daten.
+    private static func createBoundaryValue() -> Data {
+        UUID().uuidData()
     }
 }
+
 
 
