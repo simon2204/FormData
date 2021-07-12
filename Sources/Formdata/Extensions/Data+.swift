@@ -25,7 +25,7 @@ extension Data {
 
 extension Data {
     func contains<D>(_ data: D) -> Bool where D: DataProtocol {
-        self.firstRange(of: data) == nil
+        self.firstRange(of: data) != nil
     }
 }
 
@@ -41,12 +41,24 @@ extension Sequence where Element == Data {
             return Data()
         }
         
-        return dropFirst().reduce(firstElement) { partialResult, data in
-            partialResult + seperator + data
+        return dropFirst().reduce(firstElement) { joinedData, data in
+            joinedData + seperator + data
         }
+    }
+    
+    func joined() -> Data {
+        guard let firstElement = self.first() else {
+            return Data()
+        }
+        
+        return dropFirst().reduce(firstElement, +)
     }
     
     private func first() -> Element? {
         self.first { _ in true }
+    }
+    
+    func containsAny(segment: Data) -> Bool {
+        !self.allSatisfy { !$0.contains(segment) }
     }
 }

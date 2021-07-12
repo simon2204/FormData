@@ -85,7 +85,7 @@ public class FormData {
 extension FormData {
     struct Boundary {
         // Dient dazu die zum Server gesendeten Form-Daten mit diesem
-        // Framework in verbindung zu bringen.
+        // Framework in Verbindung zu bringen.
         private static let identification: Data = "FormDataFormBoundary"
         
         // Abgrenzung der einzelnen Teile in einer Multipart Datenstruktur.
@@ -104,7 +104,7 @@ extension FormData {
             var boundaryValue: Data
             repeat {
                 boundaryValue = Self.createBoundaryValue()
-            } while !isUniqueBoundaryValue(boundaryValue, for: data)
+            } while data.containsAny(segment: boundaryValue)
             return boundaryValue
         }
         
@@ -112,10 +112,6 @@ extension FormData {
         /// - Returns: Grenze in Form von Daten.
         private static func createBoundaryValue() -> Data {
             Self.identification + UUID().uuidString
-        }
-
-        private static func isUniqueBoundaryValue(_ boundaryValue: Data, for data: [Data]) -> Bool {
-            data.allSatisfy { !$0.contains(boundaryValue) }
         }
     }
 }
