@@ -27,8 +27,7 @@ public struct FormData: PostRequest {
     // Teilt bei Versenden der Daten dem Server oder Client mit,
     // um welchen Inhaltstyp es sich bei den zurückgegebenen Inhalten handelt.
     public var httpHeaderFields: [String: String] {
-        let contentType = "\(Self.contentType); boundary=\(boundary.boundaryData.utf8String)"
-        return ["Content-Type": contentType]
+        ["Content-Type": "\(Self.contentType); boundary=\(boundary.boundaryValue.utf8String)"]
     }
     
     // Beinhaltet alle Daten, die zum Versenden als form-data benötigt werden.
@@ -42,16 +41,16 @@ public struct FormData: PostRequest {
         self.boundary = Boundary(object: self, keyPath: \.dataParts)
     }
     
-    public mutating func append(_ text: String, name: String) {
-        dataParts.append(dataPart(for: text, name: name))
+    public mutating func add(value: String, forKey key: String) {
+        dataParts.append(dataPart(for: value, name: key))
     }
     
-    public mutating func append(_ data: Data, name: String) {
-        dataParts.append(dataPart(for: data, name: name))
+    public mutating func add(data: Data, forKey key: String) {
+        dataParts.append(dataPart(for: data, name: key))
     }
     
-    public mutating func append(_ file: File, name: String) {
-        dataParts.append(dataPart(for: file, name: name))
+    public mutating func add(file: File, forKey key: String) {
+        dataParts.append(dataPart(for: file, name: key))
     }
     
     private func dataPart(for text: String, name: String) -> Data {
@@ -84,7 +83,7 @@ fileprivate final class Boundary<T> {
     
     private var cachedBoundaryValue: Data!
     
-    private var boundaryValue: Data {
+    var boundaryValue: Data {
         let currentData = object[keyPath: keypath]
         
         if cachedBoundaryValue == nil || self.data != currentData {
@@ -97,10 +96,10 @@ fileprivate final class Boundary<T> {
     
     // Abgrenzung der einzelnen Teile in einer Multipart Datenstruktur.
     var boundaryData: Data {
-        "--" + boundaryValue
+        "--" + boundaryValue + "\r\n"
     }
     
-    // Markiert, dass keine weiteren Dateien und Daten nach dieser Grenze mehr folgen.
+    // Markiert, dass keine weiteren Daten nach dieser Grenze mehr folgen.
     var endBoundaryData: Data {
         "--" + boundaryValue + "--"
     }
@@ -121,7 +120,7 @@ fileprivate final class Boundary<T> {
     /// Erstellt eine neue Grenze mit Hilfe einer selbst festgelegten Identifikation und einer `UUID`.
     /// - Returns: Grenze in Form von Daten.
     private static func createBoundaryValue() -> Data {
-        UUID().uuidData()
+        UUID().uuidString.data(using: .utf8, allowLossyConversion: false)!
     }
 }
 

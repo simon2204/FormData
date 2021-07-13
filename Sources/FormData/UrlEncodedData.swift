@@ -21,7 +21,7 @@ public struct UrlEncodedData: PostRequest {
     
     public init() { }
     
-    public mutating func addValue(_ value: String, forKey key: String) {
+    public mutating func add(value: String, forKey key: String) {
         let value = value.addingPercentEncoding(withAllowedCharacters: .alphanumerics)!
         let key = key.addingPercentEncoding(withAllowedCharacters: .alphanumerics)!
         let dataPart = "\(key)=\(value)"

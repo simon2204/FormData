@@ -17,9 +17,9 @@ import Foundation
 /// let file = try File(url: localFileURL, contentType: .plainText)
 /// ```
 public struct File {
-    let name: String
-    let content: Data
-    let contentType: MimeType
+    public let name: String
+    public let content: Data
+    public let contentType: MimeType
     
     /// Initialisiert eine neue Datei mit einem Namen, Inhalt und Art des Inhaltes.
     /// - Parameters:

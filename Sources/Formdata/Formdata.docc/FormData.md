@@ -1,4 +1,4 @@
-# ``Formdata``
+# ``FormData``
 
 Erstellen und Hochladen von `FormData`.
 

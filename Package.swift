@@ -4,21 +4,21 @@
 import PackageDescription
 
 let package = Package(
-    name: "Formdata",
+    name: "FormData",
     products: [
         .library(
-            name: "Formdata",
-            targets: ["Formdata"]
+            name: "FormData",
+            targets: ["FormData"]
         ),
     ],
     targets: [
         .target(
-            name: "Formdata",
+            name: "FormData",
             dependencies: []
         ),
         .testTarget(
-            name: "FormdataTests",
-            dependencies: ["Formdata"],
+            name: "FormDataTests",
+            dependencies: ["FormData"],
             resources: [.process("Resources")]
         ),
     ]
