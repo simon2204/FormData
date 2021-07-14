@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct UrlEncodedData: PostRequest {
+public final class UrlEncodedData: PostRequest {
     
     public var httpHeaderFields: [String: String] {
         ["Content-Type": MimeType.urlencoded.rawValue]
@@ -21,7 +21,7 @@ public struct UrlEncodedData: PostRequest {
     
     public init() { }
     
-    public mutating func add(value: String, forKey key: String) {
+    public func add(value: String, forKey key: String) {
         let value = value.addingPercentEncoding(withAllowedCharacters: .alphanumerics)!
         let key = key.addingPercentEncoding(withAllowedCharacters: .alphanumerics)!
         let dataPart = "\(key)=\(value)"

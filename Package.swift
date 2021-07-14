@@ -14,13 +14,11 @@ let package = Package(
     targets: [
         .target(
             name: "FormData",
-            dependencies: [],
             exclude: ["FormData.docc"]
         ),
         .testTarget(
             name: "FormDataTests",
-            dependencies: ["FormData"],
-            resources: [.process("Resources")]
+            dependencies: ["FormData"]
         ),
     ]
 )

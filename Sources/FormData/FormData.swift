@@ -11,7 +11,7 @@ import Foundation
 ///
 /// Ermöglicht Daten über HTML als `multipart/form-data` zu versenden.
 ///
-public struct FormData: PostRequest {
+public final class FormData: PostRequest {
     
     // Media Type der Ressourcen, die mit `FormData` erstellt werden.
     private static let contentType = MimeType.formData.rawValue
@@ -22,34 +22,33 @@ public struct FormData: PostRequest {
     // Enthält alle Dateien und Daten, die zu `FormData` hinzugefügt wurden.
     private var dataParts = [Data]()
     
+    /// Abgrenzung der `dataParts` zueinander.
     private var boundary: Boundary<FormData>!
     
-    // Teilt bei Versenden der Daten dem Server oder Client mit,
-    // um welchen Inhaltstyp es sich bei den zurückgegebenen Inhalten handelt.
     public var httpHeaderFields: [String: String] {
         ["Content-Type": "\(Self.contentType); boundary=\(boundary.boundaryValue.utf8String)"]
     }
     
-    // Beinhaltet alle Daten, die zum Versenden als form-data benötigt werden.
     public var body: Data {
         boundary.boundaryData
         + dataParts.joined(seperator: boundary.boundaryData)
         + boundary.endBoundaryData
     }
     
+    /// Erstellt ein leeres FormData Objekt.
     public init() {
         self.boundary = Boundary(object: self, keyPath: \.dataParts)
     }
     
-    public mutating func add(value: String, forKey key: String) {
+    public func add(value: String, forKey key: String) {
         dataParts.append(dataPart(for: value, name: key))
     }
     
-    public mutating func add(data: Data, forKey key: String) {
+    public func add(data: Data, forKey key: String) {
         dataParts.append(dataPart(for: data, name: key))
     }
     
-    public mutating func add(file: File, forKey key: String) {
+    public func add(file: File, forKey key: String) {
         dataParts.append(dataPart(for: file, name: key))
     }
     
@@ -72,53 +71,68 @@ public struct FormData: PostRequest {
     }
 }
 
-
+/// Abgrenzung der einzelnen Teile in einer Multipart Datenstruktur.
 fileprivate final class Boundary<T> {
     
+    /// Objekt auf welches der keyPath angewendet werden soll.
     private let object: T
     
+    /// Pfad zur Eigenschaft, in dessen Daten die Grenze nicht vorkommen soll.
     private let keypath: KeyPath<T, [Data]>
     
-    private var data: [Data]!
+    /// Enthält die gecachten Daten, die die Grenze nicht beinhaltet.
+    private var cachedData: [Data]!
     
+    /// Enthält den gecachten Wert der Grenze.
     private var cachedBoundaryValue: Data!
     
+    /// Wert der Grenze, ohne zusätzliche Bindestriche, Carriage Returns und Line Feeds.
     var boundaryValue: Data {
-        let currentData = object[keyPath: keypath]
         
-        if cachedBoundaryValue == nil || self.data != currentData {
-            self.data = currentData
+        let newData = object[keyPath: keypath]
+        
+        // Erstellt eine neue Grenze, wenn noch keine existiert oder
+        // wenn sich die neuen Daten zu den vorherigen unterscheiden.
+        if cachedBoundaryValue == nil || self.cachedData != newData {
+            self.cachedData = newData
             self.cachedBoundaryValue = createUniqueBoundaryValue()
         }
         
         return self.cachedBoundaryValue
     }
     
-    // Abgrenzung der einzelnen Teile in einer Multipart Datenstruktur.
+    /// Grenze mit zwei Bindestrichen und CRLF.
     var boundaryData: Data {
         "--" + boundaryValue + "\r\n"
     }
     
-    // Markiert, dass keine weiteren Daten nach dieser Grenze mehr folgen.
+    /// Markiert, dass keine weiteren Daten nach dieser Grenze mehr folgen.
     var endBoundaryData: Data {
         "--" + boundaryValue + "--"
     }
     
+    /// Erstellt ein neues `Boundary` Objekt, welches Grenzen liefert,
+    /// die nicht in den Daten des übergebenen keyPaths vorkommen.
+    /// - Parameters:
+    ///   - object: Objekt auf welches der keyPath angewendet werden soll.
+    ///   - keyPath: Pfad zur Eigenschaft, in dessen Daten die Grenze nicht vorkommen soll.
     init(object: T, keyPath: KeyPath<T, [Data]>) {
         self.object = object
         self.keypath = keyPath
     }
     
+    /// Erstellt eine neue Grenze, die nicht in dem übergebenen Daten vorkommt.
+    /// - Returns: UUID-Grenze in Form von Daten.
     private func createUniqueBoundaryValue() -> Data {
         var boundaryValue: Data
         repeat {
             boundaryValue = Self.createBoundaryValue()
-        } while data.containsAny(segment: boundaryValue)
+        } while cachedData.containsAny(segment: boundaryValue)
         return boundaryValue
     }
     
     /// Erstellt eine neue Grenze mit Hilfe einer selbst festgelegten Identifikation und einer `UUID`.
-    /// - Returns: Grenze in Form von Daten.
+    /// - Returns: UUID-Grenze in Form von Daten.
     private static func createBoundaryValue() -> Data {
         UUID().uuidString.data(using: .utf8, allowLossyConversion: false)!
     }
