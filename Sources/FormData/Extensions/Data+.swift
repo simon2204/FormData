@@ -17,18 +17,6 @@ extension Data {
     }
 }
 
-extension Data {
-    var utf8String: String {
-        String(data: self, encoding: .utf8)!
-    }
-}
-
-extension Data {
-    func contains<D>(_ data: D) -> Bool where D: DataProtocol {
-        self.firstRange(of: data) != nil
-    }
-}
-
 extension Data: ExpressibleByStringLiteral {
     public init(stringLiteral value: StringLiteralType) {
         self = value.data(using: .utf8)!
@@ -46,19 +34,7 @@ extension Sequence where Element == Data {
         }
     }
     
-    func joined() -> Data {
-        guard let firstElement = self.first() else {
-            return Data()
-        }
-        
-        return dropFirst().reduce(firstElement, +)
-    }
-    
     private func first() -> Element? {
         self.first { _ in true }
-    }
-    
-    func containsAny(segment: Data) -> Bool {
-        !self.allSatisfy { !$0.contains(segment) }
     }
 }

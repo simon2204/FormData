@@ -8,8 +8,6 @@
 import Foundation
 
 struct PostRequestUploader {
-    private static let session = URLSession.shared
-    
     private let postRequest: PostRequest
     private let url: URL
     
@@ -27,7 +25,7 @@ struct PostRequestUploader {
     
     @discardableResult
     public func upload() throws -> Data {
-        let (data, response) = try Self.session.upload(with: request, from: postRequest.body)
+        let (data, response) = try URLSession.shared.upload(with: request, from: postRequest.body)
         
         guard let response = response as? HTTPURLResponse else {
             throw PostRequestUploaderError.couldNotParseResponse
