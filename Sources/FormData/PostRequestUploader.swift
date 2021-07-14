@@ -33,12 +33,12 @@ struct PostRequestUploader {
             throw error
         }
         
-        guard let response = response as? HTTPURLResponse else {
+        guard let res = response as? HTTPURLResponse else {
             throw PostRequestUploaderError.noResponse
         }
         
-        guard response.statusCode == 200 else {
-            throw PostRequestUploaderError.response(withStatusCode: response.statusCode)
+        guard res.statusCode == 200 else {
+            throw PostRequestUploaderError.response(withStatusCode: res.statusCode)
         }
         
         guard let data = data else {

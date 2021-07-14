@@ -5,8 +5,6 @@
 //  Created by Simon Schöpke on 14.06.21.
 //
 
-import Foundation
-
 /// Multipurpose Internet Mail Extensions
 ///
 /// Ein Medientyp (auch bekannt als Multipurpose Internet Mail Extensions oder MIME-Typ) ist ein Standard,
