@@ -37,8 +37,16 @@ public struct File {
     ///   - url: URL zu einer Datei.
     ///   - contentType: Art des Inhaltes.
     public init(url: URL, contentType: MimeType) throws {
+        guard url.isFileURL else {
+            throw FileError.noValidFileURL(url)
+        }
+        
         self.name = url.lastPathComponent
         self.content = try Data(contentsOf: url)
         self.contentType = contentType
+    }
+    
+    enum FileError: Error {
+        case noValidFileURL(URL)
     }
 }

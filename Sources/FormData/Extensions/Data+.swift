@@ -31,7 +31,7 @@ extension Data {
 
 extension Data: ExpressibleByStringLiteral {
     public init(stringLiteral value: StringLiteralType) {
-        self = value.data(using: .utf8, allowLossyConversion: false)!
+        self = value.data(using: .utf8)!
     }
 }
 

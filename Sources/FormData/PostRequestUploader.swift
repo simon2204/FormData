@@ -27,22 +27,14 @@ struct PostRequestUploader {
     
     @discardableResult
     public func upload() throws -> Data {
-        let (data, response, error) = Self.session.upload(with: request, from: postRequest.body)
+        let (data, response) = try Self.session.upload(with: request, from: postRequest.body)
         
-        if let error = error {
-            throw error
+        guard let response = response as? HTTPURLResponse else {
+            throw PostRequestUploaderError.couldNotParseResponse
         }
         
-        guard let res = response as? HTTPURLResponse else {
-            throw PostRequestUploaderError.noResponse
-        }
-        
-        guard res.statusCode == 200 else {
-            throw PostRequestUploaderError.response(withStatusCode: res.statusCode)
-        }
-        
-        guard let data = data else {
-            throw PostRequestUploaderError.noDataAvailable
+        guard (200...299).contains(response.statusCode) else {
+            throw PostRequestUploaderError.response(withStatusCode: response.statusCode)
         }
         
         return data
@@ -50,7 +42,7 @@ struct PostRequestUploader {
     
     enum PostRequestUploaderError: Error {
         case response(withStatusCode: Int)
-        case noResponse
+        case couldNotParseResponse
         case noDataAvailable
     }
 }

@@ -7,9 +7,10 @@
 
 import Foundation
 
-/// Repräsentiert HTML Form Data
+/// Erstellt `multipart/form-data` für Uploads innerhalb eines HTTP- oder HTTPS-Bodys.
 ///
-/// Ermöglicht Daten über HTML als `multipart/form-data` zu versenden.
+/// Weitere Informationen zu `multipart/form-data` im Allgemeinen
+/// sind in den Spezifikationen RFC-2388 und RFC-2045.
 ///
 public final class FormData: PostRequest {
     
@@ -134,7 +135,7 @@ fileprivate final class Boundary<T> {
     /// Erstellt eine neue Grenze mit Hilfe einer selbst festgelegten Identifikation und einer `UUID`.
     /// - Returns: UUID-Grenze in Form von Daten.
     private static func createBoundaryValue() -> Data {
-        UUID().uuidString.data(using: .utf8, allowLossyConversion: false)!
+        UUID().uuidString.data(using: .utf8)!
     }
 }
 
