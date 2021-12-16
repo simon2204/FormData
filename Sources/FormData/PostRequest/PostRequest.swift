@@ -19,8 +19,8 @@ public extension PostRequest {
     /// - Parameter url: Ziel der Anfrage.
     /// - Returns: Antwort des Servers.
     @discardableResult
-    func post(to url: URL) throws -> Data {
+    func post(to url: URL) async throws -> Data {
         let uploader = PostRequestUploader(postRequest: self, url: url)
-        return try uploader.upload()
+        return try await uploader.upload()
     }
 }

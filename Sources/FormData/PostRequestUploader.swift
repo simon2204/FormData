@@ -7,6 +7,10 @@
 
 import Foundation
 
+#if os(Linux)
+import FoundationNetworking
+#endif
+
 struct PostRequestUploader {
     private let postRequest: PostRequest
     private let url: URL
@@ -24,9 +28,9 @@ struct PostRequestUploader {
     }
     
     @discardableResult
-    public func upload() throws -> Data {
-        let (data, response) = try URLSession.shared.upload(with: request, from: postRequest.body)
-        
+    public func upload() async throws -> Data {
+        let (data, response) = try await URLSession.shared.upload(for: request, from: postRequest.body)
+		
         guard let response = response as? HTTPURLResponse else {
             throw PostRequestUploaderError.couldNotParseResponse
         }
